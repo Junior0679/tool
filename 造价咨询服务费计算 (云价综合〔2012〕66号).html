@@ -1,0 +1,1559 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>造价咨询服务费计算器 - Quicker</title>
+    <style>
+        :root {
+            --bg-body: #f2f2f2;
+            --bg-white: #ffffff;
+            --bg-light: #f8f8f8;
+            --bg-header: #6b6b6b;
+            --bg-hover: #f0f0f0;
+            --bg-input: #fdfdfd;
+            --bg-result: #f5f5f5;
+            --text-primary: #2a2a2a;
+            --text-secondary: #5c5c5c;
+            --text-white: #fafafa;
+            --text-muted: #8a8a8a;
+            --border-light: #dcdcdc;
+            --border-mid: #b0b0b0;
+            --border-heavy: #7a7a7a;
+            --accent: #5a5a5a;
+            --accent-light: #8a8a8a;
+            --error-color: #b33a3a;
+            --error-bg: #fdf0f0;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+            --shadow: 0 2px 6px rgba(0, 0, 0, 0.07);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.09);
+            --radius: 5px;
+            --radius-sm: 3px;
+            --transition: 0.18s ease;
+        }
+        [data-theme="dark"] {
+            --bg-body: #1e1e1e;
+            --bg-white: #282828;
+            --bg-light: #303030;
+            --bg-header: #4a4a4a;
+            --bg-hover: #333333;
+            --bg-input: #323232;
+            --bg-result: #2e2e2e;
+            --text-primary: #dcdcdc;
+            --text-secondary: #aaaaaa;
+            --text-white: #e8e8e8;
+            --text-muted: #777777;
+            --border-light: #444444;
+            --border-mid: #5a5a5a;
+            --border-heavy: #707070;
+            --accent: #808080;
+            --accent-light: #9a9a9a;
+            --error-color: #c0392b;
+            --error-bg: #3d2020;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+            --shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html { font-size: 14px; -webkit-text-size-adjust: 100%; }
+        body {
+            font-family: "Microsoft YaHei", "PingFang SC", "Helvetica Neue", sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 10px 6px;
+            -webkit-font-smoothing: antialiased;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .app-container {
+            width: 100%;
+            max-width: 940px;
+            background-color: var(--bg-white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+            transition: background-color 0.3s ease;
+        }
+        .app-header {
+            background-color: var(--bg-header);
+            color: var(--text-white);
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+            transition: background-color 0.3s ease;
+        }
+        .app-header .header-left { display: flex; align-items: center; gap: 10px; }
+        .app-header .header-icon { font-size: 1.5rem; }
+        .app-header h1 { font-size: 1.1rem; font-weight: 700; letter-spacing: 0.03em; }
+        .app-header .header-subtitle { font-size: 0.68rem; opacity: 0.7; }
+        .header-actions { display: flex; gap: 7px; flex-wrap: wrap; }
+        .btn-header {
+            padding: 6px 13px;
+            font-size: 0.73rem;
+            font-weight: 600;
+            font-family: inherit;
+            color: var(--text-white);
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all var(--transition);
+            white-space: nowrap;
+        }
+        .btn-header:hover { background-color: rgba(255, 255, 255, 0.18); }
+        .btn-header:active { background-color: rgba(255, 255, 255, 0.28); }
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 9px 20px;
+            font-size: 0.76rem;
+            color: var(--text-secondary);
+            background-color: var(--bg-light);
+            border-bottom: 1px solid var(--border-light);
+            transition: background-color 0.3s ease, border-color 0.3s ease;
+        }
+        .breadcrumb-link { color: var(--accent); cursor: pointer; font-weight: 600; }
+        .breadcrumb-link:hover { text-decoration: underline; }
+        .breadcrumb-current { color: var(--text-primary); font-weight: 600; }
+        .main-content { padding: 16px 18px 18px; transition: padding 0.3s ease; }
+
+        .table-three-line {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.78rem;
+            background-color: var(--bg-white);
+        }
+        .table-three-line thead tr {
+            border-top: 2.5px solid var(--border-heavy);
+            border-bottom: 2px solid var(--border-heavy);
+        }
+        .table-three-line thead th {
+            padding: 9px 10px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 0.74rem;
+            color: var(--text-primary);
+            background-color: var(--bg-light);
+            letter-spacing: 0.03em;
+            white-space: nowrap;
+        }
+        .table-three-line tbody td,
+        .table-three-line tfoot td {
+            padding: 7px 10px;
+            text-align: center;
+            vertical-align: middle;
+            color: var(--text-primary);
+            border-bottom: 0.5px solid var(--border-light);
+            line-height: 1.5;
+            height: auto;
+        }
+        .table-three-line tbody tr:last-child td { border-bottom: 2.5px solid var(--border-heavy); }
+        .table-three-line tfoot tr:last-child td { border-bottom: 2.5px solid var(--border-heavy); }
+        .table-three-line tbody tr:hover td { background-color: var(--bg-hover); }
+        .table-three-line .col-left { text-align: left; }
+        .table-three-line .col-right { text-align: right; }
+
+        .summary-table thead th:nth-child(2),
+        .summary-table thead th:nth-child(4) { text-align: left; }
+        .summary-table thead th:nth-child(3) { text-align: right; }
+        .summary-table .col-seq { width: 40px; font-weight: 600; color: var(--text-secondary); text-align: center; }
+        .summary-table .col-type { text-align: left; font-weight: 500; cursor: pointer; color: var(--accent); }
+        .summary-table .col-type:hover { text-decoration: underline; }
+        .summary-table .col-amount { width: 125px; font-weight: normal; text-align: right; }
+        .summary-table .col-amount input {
+            width: 100%;
+            padding: 4px 6px;
+            font-size: 0.78rem;
+            font-family: inherit;
+            text-align: right;
+            color: var(--text-primary);
+            background-color: var(--bg-input);
+            border: 1px solid var(--border-light);
+            border-radius: 3px;
+            outline: none;
+            transition: all var(--transition);
+        }
+        .summary-table .col-amount input:focus { border-color: var(--border-mid); }
+        .summary-table .col-amount .auto-val { font-weight: normal; color: var(--text-primary); }
+        .summary-table .col-note { text-align: left; font-size: 0.7rem; color: var(--text-secondary); max-width: 180px; }
+        .summary-table tfoot tr.row-total td {
+            font-weight: 700;
+            background-color: var(--bg-light) !important;
+            border-top: 0.5px solid var(--border-light);
+        }
+        .summary-table tbody tr:last-child td { border-bottom: 0.5px solid var(--border-light); }
+        .summary-table tbody tr.inactive-row td { opacity: 0.45; filter: grayscale(40%); color: var(--text-muted); }
+        .summary-table tbody tr.inactive-row td.col-type { color: var(--text-muted); }
+
+        .table-note {
+            font-size: 0.68rem;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            padding: 8px 2px;
+            margin-top: 8px;
+            font-style: italic;
+        }
+        .sub-panel { display: none; }
+        .sub-panel.active { display: block; }
+        .sub-panel .sub-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-light);
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .sub-panel .sub-title { font-size: 0.95rem; font-weight: 700; color: var(--text-primary); }
+        .btn-back {
+            padding: 5px 13px;
+            font-size: 0.76rem;
+            font-weight: 600;
+            font-family: inherit;
+            color: var(--accent);
+            background: transparent;
+            border: 1.5px solid var(--accent);
+            border-radius: 3px;
+            cursor: pointer;
+            transition: all var(--transition);
+            white-space: nowrap;
+        }
+        .btn-back:hover { background-color: var(--bg-hover); }
+        .sub-input-section {
+            background-color: var(--bg-light);
+            border-radius: var(--radius);
+            padding: 14px 16px;
+            margin-bottom: 14px;
+            border: 1px solid var(--border-light);
+        }
+        .sub-input-row { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; flex-wrap: wrap; }
+        .sub-input-row:last-child { margin-bottom: 0; }
+        .sub-input-row label {
+            flex: 0 0 auto;
+            min-width: 130px;
+            font-weight: 600;
+            font-size: 0.82rem;
+            color: var(--text-primary);
+            white-space: nowrap;
+        }
+        /* 宽度由 JS 按内容自适应，此处不设 min-width */
+        .sub-input-row input,
+        .sub-input-row select {
+            padding: 6px 10px;
+            font-size: 0.84rem;
+            font-family: inherit;
+            color: var(--text-primary);
+            background-color: var(--bg-input);
+            border: 1.5px solid var(--border-light);
+            border-radius: 3px;
+            outline: none;
+            transition: all var(--transition);
+        }
+        .sub-input-row input:focus,
+        .sub-input-row select:focus { border-color: var(--border-mid); box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.04); }
+        .sub-input-row .unit { font-size: 0.78rem; color: var(--text-secondary); white-space: nowrap; }
+        .inline-input-text {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-weight: 600;
+            font-size: 0.82rem;
+            color: var(--text-primary);
+            flex-wrap: wrap;
+        }
+        .inline-input-text input { width: 60px; padding: 4px 6px; text-align: center; transition: all var(--transition); }
+        .calc-detail {
+            background-color: var(--bg-result);
+            border-radius: var(--radius);
+            padding: 12px 14px;
+            margin-top: 12px;
+            font-size: 0.76rem;
+            color: var(--text-secondary);
+            line-height: 1.8;
+            border: 1px solid var(--border-light);
+        }
+        .calc-detail strong { color: var(--text-primary); }
+        .calc-detail .final-result {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px dashed var(--border-mid);
+        }
+        .fee-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 0;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border-bottom: 1px dotted var(--border-light);
+        }
+        .fee-item:last-of-type { border-bottom: none; }
+        .fee-label { color: var(--text-primary); }
+        .fee-value { color: var(--text-primary); font-weight: 700; }
+        .sub-placeholder { text-align: center; padding: 30px; color: var(--text-muted); font-size: 0.84rem; }
+
+        #subNavContainer { display: flex; align-items: center; gap: 6px; font-size: 0.82rem; font-weight: 600; white-space: nowrap; }
+        #subNavContainer select {
+            padding: 4px 8px;
+            font-size: 0.82rem;
+            font-family: inherit;
+            color: var(--text-primary);
+            background-color: var(--bg-input);
+            border: 1.5px solid var(--border-light);
+            border-radius: 3px;
+            outline: none;
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+
+        /* ===== 打印专用区域：屏幕上隐藏 ===== */
+        #printArea { display: none; }
+
+        /* ===== 打印页面设置 =====
+           A4 纵向；底部页码居中（第 X 页 / 共 Y 页）。
+           指定 @page 边距盒后，Chrome / Edge / 新版 WebView 打印时
+           不再输出系统默认页眉页脚（标题、日期、about:blank 等）。 */
+        @page {
+            size: A4;
+            margin: 12mm 9mm 15mm 9mm;
+            @bottom-center {
+                content: "第 " counter(page) " 页 / 共 " counter(pages) " 页";
+                font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+                font-size: 9pt;
+                color: #000;
+            }
+        }
+
+        @media print {
+            body { background: #fff !important; padding: 0; }
+            .app-container { box-shadow: none; border: none; max-width: 100%; border-radius: 0; background: #fff; }
+            /* 隐藏全部交互界面（含屏幕版汇总表），打印只输出 #printArea */
+            .app-header,
+            .breadcrumb,
+            .header-actions,
+            .btn-back,
+            .btn-header,
+            .sub-panel,
+            .sub-nav-row,
+            #subNavContainer,
+            #panelSummary {
+                display: none !important;
+            }
+            #printArea { display: block !important; }
+            .main-content { padding: 0; }
+
+            /* 强制白底黑字，避免暗色主题被带上纸面 */
+            #printArea,
+            #printArea * { color: #000 !important; }
+            #printArea .table-three-line { background: #fff !important; }
+            #printArea .table-three-line thead th { background-color: #e8e8e8 !important; }
+            #printArea .table-three-line tbody tr:hover td { background-color: transparent !important; }
+            #printArea .summary-table tfoot tr.row-total td { background-color: #f0f0f0 !important; }
+            #printArea .sub-input-section,
+            #printArea .calc-detail { background: #fff !important; border-color: #bbb !important; }
+
+            /* 输入框/下拉框在打印时已转换为文本 span：文字带下划线，空值显示 '/' */
+            .print-inline-val {
+                font-size: 0.84rem;
+                text-decoration: underline !important;
+                text-underline-offset: 2pt;
+                text-decoration-thickness: 0.6pt;
+                padding: 0 2px;
+            }
+
+            /* 报表标题：大号加粗居中 */
+            .print-report-title {
+                text-align: center;
+                font-size: 18pt;
+                font-weight: 800;
+                letter-spacing: 6px;
+                text-indent: 6px;
+                margin: 0 0 6mm;
+            }
+            .print-summary-wrap { page-break-inside: avoid; break-inside: avoid; }
+
+            /* 附录：置于最后一页 */
+            .print-rate-appendix { page-break-before: always; break-before: page; }
+            .appendix-tag {
+                text-align: center;
+                font-size: 13pt;
+                font-weight: 800;
+                letter-spacing: 12px;
+                text-indent: 12px;
+                margin-bottom: 5mm;
+            }
+            .appendix-title {
+                text-align: center;
+                font-size: 11pt;
+                font-weight: 800;
+                letter-spacing: 2px;
+                text-indent: 2px;
+                margin-bottom: 2pt;
+            }
+            .appendix-doc { text-align: center; font-size: 7.5pt; margin-bottom: 6pt; }
+            .appendix-table { width: 100%; border-collapse: collapse; font-size: 6.8pt; line-height: 1.3; page-break-inside: avoid; break-inside: avoid; }
+            .appendix-table th,
+            .appendix-table td {
+                border: 0.5pt solid #555;
+                padding: 2.5pt 2pt;
+                text-align: center;
+                vertical-align: middle;
+            }
+            .appendix-table thead th { background: #ececec !important; font-weight: 700; }
+
+            /* 每张分表单独另起一页 */
+            .print-sheet { page-break-before: always; break-before: page; }
+            .print-sheet-title { font-size: 10.5pt; font-weight: 700; margin-bottom: 8pt; }
+            .print-sheet .sub-input-section,
+            .print-sheet table,
+            .print-sheet .calc-detail { page-break-inside: avoid; break-inside: avoid; }
+        }
+        @media (max-width: 600px) {
+            .app-header { padding: 10px 12px; }
+            .app-header h1 { font-size: 0.95rem; }
+            .main-content { padding: 10px 6px 12px; }
+            .table-three-line { font-size: 0.7rem; }
+            .sub-input-row label { min-width: 100px; font-size: 0.76rem; }
+            #subNavContainer { font-size: 0.74rem; }
+            #subNavContainer select { font-size: 0.74rem; padding: 3px 6px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="app-header">
+            <div class="header-left">
+                <div>
+                    <h1>造价咨询服务费计算器</h1>
+                    <div class="header-subtitle">云价综合〔2012〕66号</div>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="btn-header" id="btnPrint" title="打印">&#x1F5A8; 打印</button>
+                <button class="btn-header" id="btnExportCSV" title="导出CSV">&#x1F4E5; 导出CSV</button>
+            </div>
+        </div>
+        <div class="breadcrumb" id="breadcrumb">
+            <span class="breadcrumb-link" id="breadcrumbSummary">&#x1F4CA; 汇总表</span>
+            <span class="breadcrumb-current" id="breadcrumbCurrent" style="display:none;"></span>
+        </div>
+        <div class="main-content" id="mainContent">
+            <div id="panelSummary">
+                <table class="table-three-line summary-table" id="summaryTable">
+                    <thead><tr><th>序号</th><th>服务类型</th><th>收费金额（万元）</th><th>备注</th></tr></thead>
+                    <tbody id="summaryBody"></tbody>
+                    <tfoot id="summaryFoot"></tfoot>
+                </table>
+                <div class="table-note">
+                    <strong>注：</strong>依据《云南省物价局关于调整建设工程造价咨询服务收费标准的通知》( 云价综合〔2012〕66号 ) 计算。
+                </div>
+            </div>
+            <div class="sub-panel" id="subPanel">
+                <div class="sub-header">
+                    <span class="sub-title" id="subPanelTitle">分表</span>
+                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                        <button class="btn-back" id="btnBackToSummary">← 返回汇总表</button>
+                        <div id="subNavContainer"></div>
+                    </div>
+                </div>
+                <div id="subPanelContent"></div>
+            </div>
+            <!-- 打印专用区域：报表标题 + 汇总表 + 分表 + 附录，仅打印时可见 -->
+            <div id="printArea"></div>
+        </div>
+    </div>
+    <script>
+        (function() {
+            function debounce(fn, delay) {
+                var timer = null;
+                return function() {
+                    var context = this;
+                    var args = arguments;
+                    if (timer) clearTimeout(timer);
+                    timer = setTimeout(function() {
+                        timer = null;
+                        fn.apply(context, args);
+                    }, delay);
+                };
+            }
+
+            function applyTheme() {
+                var m = null;
+                if (typeof window.quickerThemeMode !== 'undefined' && window.quickerThemeMode) m = window.quickerThemeMode;
+                else if (typeof $quickerSync !== 'undefined' && $quickerSync.getVar) {
+                    try { m = $quickerSync.getVar("quickerThemeMode"); } catch (e) { m = null; }
+                }
+                var dark = (m === 'dark' || m === 'auto_dark') ? true :
+                    (m === 'light' || m === 'auto_light') ? false :
+                    (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                document.documentElement.setAttribute('data-theme', dark ? 'dark' : '');
+            }
+            applyTheme();
+            if (window.matchMedia) {
+                var dq = window.matchMedia('(prefers-color-scheme: dark)');
+                if (dq.addEventListener) dq.addEventListener('change', function() {
+                    if (!(typeof window.quickerThemeMode !== 'undefined' && window.quickerThemeMode) &&
+                        !(typeof $quickerSync !== 'undefined' && $quickerSync.getVar)) applyTheme();
+                });
+            }
+
+            var brackets = [200, 500, 2000, 5000, 10000, 50000, Infinity];
+            var adjustCoeffOptions = [
+                { name: '井港矿山工程', value: 1.00 }, { name: '水利电力工程', value: 0.80 }, { name: '机场场道工程',
+                    value: 0.60 },
+                { name: '公路、道路工程', value: 0.70 }, { name: '城市轨道工程', value: 0.70 }, { name: '桥梁隧道工程',
+                    value: 0.80 },
+                { name: '港口工程', value: 0.80 }, { name: '市政其他工程', value: 0.80 }, { name: '园林绿化工程',
+                value: 1.10 },
+                { name: '装饰装修工程', value: 1.20 }, { name: '仿古建筑工程', value: 1.20 },
+                { name: '工业安装工程(不含除非标外的设备费用)', value: 1.30 }, { name: '房屋建筑及其他工程', value: 1.00 }
+            ];
+
+            var serviceTypes = [
+                { name: '投资估算编制或审核', note: '', hasDetail: true, detailType: 'investment' },
+                { name: '设计概算编制或审核', note: '', hasDetail: true, detailType: 'designEstimate' },
+                { name: '工程预算编制或审核', note: '', hasDetail: true, detailType: 'budgetReview' },
+                { name: '招标工程量清单编制或审核', note: '招标控制价（最高投标限价）编制或审核=④+⑤', rowspan: 2, hasDetail: true,
+                    detailType: 'bqList' },
+                { name: '工程量清单计价文件编制或审核', note: '', rowspanMerge: true, hasDetail: true, detailType: 'bqPrice' },
+                { name: '工程结算编制', note: '', hasDetail: true, detailType: 'settlementCompile' },
+                { name: '竣工决算编审', note: '', hasDetail: true, detailType: 'finalAccount' },
+                { name: '工程结算审核', note: '基本费+成效附加费', hasDetail: true, detailType: 'settlementAudit' },
+                { name: '施工阶段全过程造价控制', note: '', hasDetail: true, detailType: 'fullProcessControl' },
+                { name: '工程造价争议鉴证', note: '不含配合质证的费用', hasDetail: true, detailType: 'disputeAuthentication' },
+                { name: '钢筋或指定构件明细数量计算', note: '', hasDetail: true, detailType: 'rebarCalculation' },
+                { name: '计日（时）服务', note: '不含交通差旅等费用', hasDetail: true, detailType: 'dailyService' }
+            ];
+
+            var ratesMap = {
+                investment: [1.00, 0.90, 0.80, 0.60, 0.40, 0.20, 0.10],
+                designEstimate: [2.00, 1.80, 1.60, 1.50, 1.00, 0.80, 0.50],
+                budgetReview: [3.50, 3.20, 3.00, 2.20, 2.00, 1.80, 1.50],
+                bqList: [3.50, 3.30, 3.00, 2.50, 2.00, 1.50, 1.00],
+                bqPrice: [2.00, 1.80, 1.60, 1.50, 1.40, 1.20, 1.00],
+                settlementCompile: [4.00, 3.50, 3.00, 2.80, 2.50, 2.30, 1.80],
+                finalAccount: [2.00, 1.50, 1.20, 1.10, 1.00, 0.80, 0.60],
+                settlementAudit: [4.00, 3.50, 3.00, 2.50, 2.00, 1.50, 1.00],
+                fullProcessControl: [12.00, 10.00, 8.00, 7.00, 6.00, 5.00, 3.50],
+                disputeAuthentication: [10.00, 9.00, 8.00, 7.00, 6.00, 5.00, 4.00]
+            };
+
+            var baseLabels = {
+                investment: '建设项目编制成果金额',
+                designEstimate: '建设项目编制成果金额',
+                budgetReview: '单独出具编制成果的造价金额',
+                bqList: '最高投标限价金额',
+                bqPrice: '最高投标限价金额',
+                settlementCompile: '单独出具编制成果的造价金额',
+                finalAccount: '单独出具编制成果的造价金额',
+                settlementAudit: '委托审核的造价金额',
+                fullProcessControl: '管控项目合同结算造价金额',
+                disputeAuthentication: '鉴证成果造价金额'
+            };
+
+            /* 附录：云南省建设工程造价咨询服务收费基准费率表（仅打印输出，置于最后一页） */
+            var RATE_APPENDIX_HTML =
+                '<div class="print-rate-appendix">' +
+                '<div class="appendix-tag">附录</div>' +
+                '<div class="appendix-title">云南省建设工程造价咨询服务收费基准费率表</div>' +
+                '<div class="appendix-doc">云价综合〔2012〕66号</div>' +
+                '<table class="appendix-table">' +
+                '<colgroup><col/><col/><col/><col/><col/><col/><col/><col/><col/><col/><col/><col/></colgroup>' +
+                '<thead>' +
+                '<tr>' +
+                '<th rowspan="2">序号</th>' +
+                '<th colspan="2" rowspan="2">咨询项目名称</th>' +
+                '<th rowspan="2">收费基数（X）</th>' +
+                '<th colspan="7">分档累计划分标准（万元）</th>' +
+                '<th rowspan="2">备注</th>' +
+                '</tr>' +
+                '<tr>' +
+                '<th>X≤200</th><th>200＜X≤500</th><th>500＜X≤2000</th><th>2000＜X≤5000</th><th>5000＜X≤10000</th><th>10000＜X≤50000</th><th>X＞50000</th>' +
+                '</tr>' +
+                '</thead>' +
+                '<tbody>' +
+                '<tr><td>1</td><td colspan="2">投资估算编制或审核</td><td rowspan="2">建设项目编制<br/>成果金额</td><td>1‰</td><td>0.9‰</td><td>0.8‰</td><td>0.6‰</td><td>0.4‰</td><td>0.2‰</td><td>0.1‰</td><td></td></tr>' +
+                '<tr><td>2</td><td colspan="2">设计概算编制或审核</td><td>2‰</td><td>1.8‰</td><td>1.6‰</td><td>1.5‰</td><td>1‰</td><td>0.8‰</td><td>0.5‰</td><td></td></tr>' +
+                '<tr><td>3</td><td colspan="2">工程预算编制或审核</td><td>单独出具编制<br/>成果的造价金额</td><td>3.5‰</td><td>3.2‰</td><td>3‰</td><td>2.2‰</td><td>2‰</td><td>1.8‰</td><td>1.5‰</td><td></td></tr>' +
+                '<tr><td>4</td><td colspan="2">招标工程量清单<br/>编制或审核</td><td rowspan="2">拦标价金额</td><td>3.5‰</td><td>3.3‰</td><td>3‰</td><td>2.5‰</td><td>2‰</td><td>1.5‰</td><td>1‰</td><td></td></tr>' +
+                '<tr><td>5</td><td colspan="2">工程量清单计价文件<br/>编制或审核</td><td>2‰</td><td>1.8‰</td><td>1.6‰</td><td>1.5‰</td><td>1.4‰</td><td>1.2‰</td><td>1‰</td><td></td></tr>' +
+                '<tr><td>6</td><td colspan="2">工程结算编制</td><td rowspan="2">单独出具编制<br/>成果的造价金额</td><td>4‰</td><td>3.5‰</td><td>3‰</td><td>2.8‰</td><td>2.5‰</td><td>2.3‰</td><td>1.8‰</td><td></td></tr>' +
+                '<tr><td>7</td><td colspan="2">竣工决算编审</td><td>2‰</td><td>1.5‰</td><td>1.2‰</td><td>1.1‰</td><td>1‰</td><td>0.8‰</td><td>0.6‰</td><td></td></tr>' +
+                '<tr><td rowspan="2">8</td><td rowspan="2">工程结算审核</td><td>基本费</td><td>委托审核的造价金额</td><td>4‰</td><td>3.5‰</td><td>3‰</td><td>2.5‰</td><td>2‰</td><td>1.5‰</td><td>1‰</td><td></td></tr>' +
+                '<tr><td>成效附加费</td><td>审核差异超过核定造价5%之外的金额</td><td colspan="7">5%</td><td>审核差异在核定造价5％以内的金额不计取成效附加费</td></tr>' +
+                '<tr><td>9</td><td colspan="2">施工阶段全过程造价控制</td><td>管控项目合同<br/>结算造价金额</td><td>12‰</td><td>10‰</td><td>8‰</td><td>7‰</td><td>6‰</td><td>5‰</td><td>3.5‰</td><td></td></tr>' +
+                '<tr><td>10</td><td colspan="2">工程造价争议鉴证</td><td>鉴证成果<br/>造价金额</td><td>10‰</td><td>9‰</td><td>8‰</td><td>7‰</td><td>6‰</td><td>5‰</td><td>4‰</td><td>不含配合质证<br/>的费用</td></tr>' +
+                '<tr><td>11</td><td colspan="2">钢筋或指定构件<br/>明细数量计算</td><td>计算对象<br/>合计重量</td><td colspan="7">12元/吨</td><td></td></tr>' +
+                '<tr><td rowspan="2">12</td><td rowspan="2">计日（时）服务</td><td>注册造价工程师</td><td>实际工作日</td><td colspan="7">1000元/日至1600元/日内议定</td><td rowspan="2">不含其他交通<br/>差旅等费用</td></tr>' +
+                '<tr><td>造价员</td><td>实际工作日</td><td colspan="7">500元/日至1000元/日内议定</td></tr>' +
+                '</tbody>' +
+                '</table>' +
+                '</div>';
+
+            var detailData = {};
+            var allDetailTypes = ['investment', 'designEstimate', 'budgetReview', 'bqList', 'bqPrice',
+                'settlementCompile', 'finalAccount', 'settlementAudit', 'fullProcessControl',
+                'disputeAuthentication', 'rebarCalculation', 'dailyService'
+            ];
+            allDetailTypes.forEach(function(t) {
+                if (t === 'settlementAudit') {
+                    detailData[t] = {
+                        baseAmount: '',
+                        approvedAmount: '',
+                        adjustCoeff: 1.00,
+                        discountRate: '',
+                        effectThreshold: '5',
+                        effectRate: '5',
+                        effectDiscount: 'no',
+                        calcEffectFee: 'yes',
+                        fee: null
+                    };
+                } else if (t === 'rebarCalculation') {
+                    detailData[t] = { weight: '', adjustCoeff: 1.00, discountRate: '', fee: null };
+                } else if (t === 'dailyService') {
+                    detailData[t] = {
+                        days1: '1',
+                        rate1: '',
+                        days2: '1',
+                        rate2: '',
+                        adjustCoeff: 1.00,
+                        discountRate: '',
+                        fee: null
+                    };
+                } else {
+                    detailData[t] = { baseAmount: '', adjustCoeff: 1.00, discountRate: '', fee: null };
+                }
+            });
+            var manualAmounts = {};
+
+            /* ===== 动态获取备注内容 ===== */
+            function getItemNote(item) {
+                if (item.detailType === 'settlementAudit') {
+                    var d = getDetailData('settlementAudit');
+                    if (d && d.calcEffectFee === 'no') {
+                        return '仅基本费，不含成效附加费';
+                    }
+                }
+                return item.note;
+            }
+
+            /* ===== 输入框宽度自适应：宽度 = 文字（或提示字符）+ 前后各一个空格 ===== */
+            var textSizer = null;
+            function measureTextWidth(text, cs) {
+                if (!textSizer) {
+                    textSizer = document.createElement('span');
+                    textSizer.style.cssText = 'position:absolute;left:-9999px;top:-9999px;visibility:hidden;white-space:pre;pointer-events:none;';
+                    document.body.appendChild(textSizer);
+                }
+                textSizer.style.fontStyle = cs.fontStyle;
+                textSizer.style.fontVariant = cs.fontVariant;
+                textSizer.style.fontWeight = cs.fontWeight;
+                textSizer.style.fontSize = cs.fontSize;
+                textSizer.style.fontFamily = cs.fontFamily;
+                textSizer.style.letterSpacing = cs.letterSpacing;
+                textSizer.textContent = text;
+                return textSizer.getBoundingClientRect().width;
+            }
+
+            function autoSizeField(el) {
+                if (!el || !el.parentNode) return;
+                var cs = window.getComputedStyle(el);
+                var text = '';
+                var extra = 0;
+                if (el.tagName === 'SELECT') {
+                    var opt = el.options[el.selectedIndex];
+                    text = opt ? opt.text : '';
+                    extra = parseFloat(cs.fontSize) * 1.6; /* 预留下拉箭头位置 */
+                } else {
+                    text = el.value || el.getAttribute('placeholder') || '';
+                }
+                var textW = measureTextWidth(text, cs);
+                var spaceW = measureTextWidth(' ', cs);
+                var padX = parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight);
+                var borX = parseFloat(cs.borderLeftWidth) + parseFloat(cs.borderRightWidth);
+                el.style.width = Math.ceil(textW + spaceW * 2 + padX + borX + extra + 2) + 'px';
+            }
+
+            function applyAutoSizes(root) {
+                var scope = root || document;
+                var els = scope.querySelectorAll('input[type="text"], input:not([type]), select');
+                for (var i = 0; i < els.length; i++) autoSizeField(els[i]);
+            }
+
+            /* 事件委托：任何输入框/下拉框内容变化时实时调整宽度 */
+            document.addEventListener('input', function(e) {
+                var t = e.target;
+                if (t && t.tagName === 'INPUT') autoSizeField(t);
+            });
+            document.addEventListener('change', function(e) {
+                var t = e.target;
+                if (t && t.tagName === 'SELECT') autoSizeField(t);
+            });
+
+            function calcProgressiveFee(X, rates) {
+                if (X <= 0 || isNaN(X)) return 0;
+                var fee = 0,
+                    prev = 0;
+                for (var i = 0; i < brackets.length; i++) {
+                    var upper = Math.min(X, brackets[i]);
+                    if (upper > prev) fee += (upper - prev) * rates[i] / 1000;
+                    prev = brackets[i];
+                    if (X <= brackets[i]) break;
+                }
+                return fee;
+            }
+
+            function getBracketLabel(i) {
+                if (i === 0) return 'X ≤ 200';
+                if (i === brackets.length - 1) return 'X > 50000';
+                return brackets[i - 1] + ' < X ≤ ' + brackets[i];
+            }
+
+            function getDetailData(type) { return detailData[type] || null; }
+
+            /* 审增（减）金额 = 审定金额 - 送审金额（渲染与打印共用，保证任何时刻取值一致） */
+            function calcAuditDiffText(dataObj) {
+                var s = parseFloat(dataObj.baseAmount);
+                var a = parseFloat(dataObj.approvedAmount);
+                if (isNaN(s) || isNaN(a) || s <= 0 || a <= 0) return '—';
+                var diff = a - s;
+                return (diff >= 0 ? '+' : '') + diff.toFixed(4);
+            }
+
+            function renderSubNav(currentIndex) {
+                var html = '<label>跳转到：</label><select id="subNavSelect">';
+                for (var i = 0; i < serviceTypes.length; i++) {
+                    var sel = (i === currentIndex) ? ' selected' : '';
+                    html += '<option value="' + i + '"' + sel + '>' + serviceTypes[i].name + '</option>';
+                }
+                html += '</select>';
+                return html;
+            }
+
+            function bindSubNav() {
+                var sel = document.getElementById('subNavSelect');
+                if (sel) {
+                    sel.addEventListener('change', function() {
+                        var idx = parseInt(this.value, 10);
+                        if (!isNaN(idx)) openSubPanel(idx);
+                    });
+                }
+            }
+
+            function renderSummaryTable() {
+                var body = document.getElementById('summaryBody');
+                var foot = document.getElementById('summaryFoot');
+                body.innerHTML = '';
+                for (var i = 0; i < serviceTypes.length; i++) {
+                    var item = serviceTypes[i];
+                    var tr = document.createElement('tr');
+                    var td1 = document.createElement('td');
+                    td1.className = 'col-seq';
+                    td1.textContent = i + 1;
+                    tr.appendChild(td1);
+                    var td2 = document.createElement('td');
+                    td2.className = 'col-type';
+                    td2.textContent = item.name;
+                    td2.setAttribute('data-index', i);
+                    td2.addEventListener('click', function(e) { openSubPanel(parseInt(this.getAttribute(
+                            'data-index'), 10)); });
+                    tr.appendChild(td2);
+                    var td3 = document.createElement('td');
+                    td3.className = 'col-amount';
+                    var feeValue = null;
+                    if (item.hasDetail) {
+                        var d = getDetailData(item.detailType);
+                        feeValue = (d && d.fee !== null) ? d.fee : null;
+                        var sp = document.createElement('span');
+                        sp.className = 'auto-val';
+                        sp.id = 'summaryFee_' + item.detailType;
+                        sp.textContent = feeValue !== null ? feeValue.toFixed(4) : '0.0000';
+                        td3.appendChild(sp);
+                    } else {
+                        var raw = manualAmounts[i] || '';
+                        var v = parseFloat(raw);
+                        feeValue = isNaN(v) ? null : v;
+                        var inp = document.createElement('input');
+                        inp.type = 'text';
+                        inp.setAttribute('data-index', i);
+                        inp.placeholder = '0.0000';
+                        inp.value = raw;
+                        inp.addEventListener('input', function() {
+                            manualAmounts[parseInt(this.getAttribute('data-index'), 10)] = this.value
+                                .trim();
+                            updateTotalRow();
+                            var row = this.closest('tr');
+                            updateRowInactive(row, this.getAttribute('data-index'));
+                        });
+                        td3.appendChild(inp);
+                    }
+                    tr.appendChild(td3);
+                    var td4 = document.createElement('td');
+                    td4.className = 'col-note';
+                    var displayNote = getItemNote(item);
+                    if (item.rowspan && item.rowspan > 1) {
+                        td4.setAttribute('rowspan', item.rowspan);
+                        td4.textContent = displayNote;
+                    } else if (!item.rowspanMerge) { td4.textContent = displayNote; }
+                    if (item.hasDetail && !item.rowspanMerge) {
+                        td4.id = 'summaryNote_' + item.detailType;
+                    }
+                    if (!item.rowspanMerge) tr.appendChild(td4);
+                    
+                    if (feeValue !== null && Math.abs(feeValue) < 0.001) {
+                        tr.classList.add('inactive-row');
+                    } else if (feeValue === null && item.hasDetail) {
+                        tr.classList.add('inactive-row');
+                    } else if (!item.hasDetail && (feeValue === null || Math.abs(feeValue) < 0.001)) {
+                        tr.classList.add('inactive-row');
+                    }
+                    body.appendChild(tr);
+                }
+                applyAutoSizes();
+                updateTotalRow();
+            }
+
+            function updateRowInactive(row, index) {
+                var raw = manualAmounts[index] || '';
+                var v = parseFloat(raw);
+                if (isNaN(v) || Math.abs(v) < 0.001) {
+                    row.classList.add('inactive-row');
+                } else {
+                    row.classList.remove('inactive-row');
+                }
+            }
+
+            function updateTotalRow() {
+                var foot = document.getElementById('summaryFoot');
+                var total = 0;
+                allDetailTypes.forEach(function(t) { var d = detailData[t]; if (d.fee !== null && !isNaN(d.fee))
+                    total += d.fee; });
+                for (var i = 0; i < serviceTypes.length; i++) {
+                    if (!serviceTypes[i].hasDetail) {
+                        var v = parseFloat(manualAmounts[i] || '');
+                        if (!isNaN(v)) total += v;
+                    }
+                }
+                foot.innerHTML =
+                    '<tr class="row-total"><td colspan="2"><strong>合 计</strong></td><td class="col-amount"><strong>' +
+                    total.toFixed(4) + '</strong></td><td></td></tr>';
+                buildPrintArea();
+            }
+
+            /* ===== 打印分表副本：剥离 id；输入框/下拉框转为带下划线文本，空值显示 '/' ===== */
+            function finalizePrintSheet(sheetHtml) {
+                var tmp = document.createElement('div');
+                tmp.innerHTML = sheetHtml;
+                var withId = tmp.querySelectorAll('[id]');
+                var k;
+                for (k = 0; k < withId.length; k++) withId[k].removeAttribute('id');
+                var sels = tmp.querySelectorAll('select');
+                for (k = 0; k < sels.length; k++) {
+                    var sel = sels[k];
+                    var opt = sel.options[sel.selectedIndex];
+                    var sp = document.createElement('span');
+                    sp.className = 'print-inline-val';
+                    sp.textContent = (opt && opt.text) ? opt.text : '/';
+                    sel.parentNode.replaceChild(sp, sel);
+                }
+                var inps = tmp.querySelectorAll('input');
+                for (k = 0; k < inps.length; k++) {
+                    var inp = inps[k];
+                    var sp2 = document.createElement('span');
+                    sp2.className = 'print-inline-val';
+                    sp2.textContent = (inp.value && String(inp.value).trim() !== '') ? inp.value : '/';
+                    inp.parentNode.replaceChild(sp2, inp);
+                }
+                return tmp.innerHTML;
+            }
+
+            /* ===== 打印专用：报表标题 + 汇总表(过滤0值+重排序号) + 分表(每页一张) + 附录(末页) ===== */
+            function buildPrintArea() {
+                var container = document.getElementById('printArea');
+                if (!container) return;
+
+                // 1) 筛选金额非0的行，并重新编号
+                var included = [];
+                var total = 0;
+                for (var i = 0; i < serviceTypes.length; i++) {
+                    var item = serviceTypes[i];
+                    var amt = null;
+                    if (item.hasDetail) {
+                        var d = getDetailData(item.detailType);
+                        amt = (d && d.fee !== null) ? d.fee : null;
+                    } else {
+                        var v = parseFloat(manualAmounts[i] || '');
+                        amt = isNaN(v) ? null : v;
+                    }
+                    if (amt !== null && Math.abs(amt) >= 0.001) {
+                        included.push({ seq: included.length + 1, item: item, amt: amt });
+                        total += amt;
+                    }
+                }
+
+                // 2) 报表标题
+                var html = '<div class="print-report-title">造价咨询服务费汇总表</div>';
+
+                // 3) 打印版汇总表
+                html += '<div class="print-summary-wrap">';
+                html += '<table class="table-three-line summary-table">';
+                html += '<thead><tr><th>序号</th><th>服务类型</th><th>收费金额（万元）</th><th>备注</th></tr></thead><tbody>';
+                if (included.length === 0) {
+                    html += '<tr><td colspan="4" style="text-align:center;color:#888;">（无计费项目）</td></tr>';
+                } else {
+                    for (var r = 0; r < included.length; r++) {
+                        var it = included[r].item;
+                        var note = it.rowspanMerge ? '' : (getItemNote(it) || '');
+                        html += '<tr>' +
+                            '<td class="col-seq">' + included[r].seq + '</td>' +
+                            '<td class="col-type" style="cursor:default;">' + it.name + '</td>' +
+                            '<td class="col-amount"><span class="auto-val">' + included[r].amt.toFixed(4) + '</span></td>' +
+                            '<td class="col-note">' + escapeHtml(note) + '</td>' +
+                            '</tr>';
+                    }
+                }
+                html += '</tbody><tfoot><tr class="row-total"><td colspan="2"><strong>合 计</strong></td><td class="col-amount"><strong>' +
+                    total.toFixed(4) + '</strong></td><td></td></tr></tfoot></table>';
+                html += '<div class="table-note"><strong>注：</strong>依据《云南省物价局关于调整建设工程造价咨询服务收费标准的通知》( 云价综合〔2012〕66号 ) 计算。</div>';
+                html += '</div>';
+
+                // 4) 分表（序号与汇总表对齐，每张单独起页由 CSS 控制）
+                for (var s = 0; s < included.length; s++) {
+                    var inc = included[s];
+                    var itm = inc.item;
+                    if (!itm.hasDetail) continue;
+                    var dt = itm.detailType;
+                    var dd = getDetailData(dt);
+                    var sheet = '';
+                    if (dt === 'settlementAudit')       sheet = renderSettlementAuditSheet(dd);
+                    else if (dt === 'rebarCalculation') sheet = renderRebarSheet(dd);
+                    else if (dt === 'dailyService')     sheet = renderDailyServiceSheet(dd);
+                    else                                sheet = renderDetailSheet(dt, ratesMap[dt], dd);
+                    sheet = finalizePrintSheet(sheet);
+                    html += '<div class="print-sheet">' +
+                        '<div class="print-sheet-title">' + inc.seq + '、' + itm.name + '</div>' +
+                        sheet + '</div>';
+                }
+
+                // 5) 附录：基准费率表（强制另起一页，作为最后一页）
+                html += RATE_APPENDIX_HTML;
+
+                container.innerHTML = html;
+            }
+
+            /* 打印前后：同步打印区内容；临时替换页面标题，
+               即使个别内核仍输出系统页眉，显示的也是报表名而非工具名 */
+            window.addEventListener('beforeprint', function() {
+                buildPrintArea();
+                document.title = '造价咨询服务费汇总表';
+            });
+            window.addEventListener('afterprint', function() {
+                document.title = '造价咨询服务费计算器 - Quicker';
+            });
+
+            function updateSummaryFee(detailType) {
+                var sp = document.getElementById('summaryFee_' + detailType);
+                var d = getDetailData(detailType);
+                if (sp) {
+                    var fee = (d && d.fee !== null) ? d.fee : 0;
+                    sp.textContent = fee.toFixed(4);
+                    var row = sp.closest('tr');
+                    if (row) {
+                        if (fee !== null && Math.abs(fee) < 0.001) row.classList.add('inactive-row');
+                        else row.classList.remove('inactive-row');
+                    }
+                }
+                // 动态更新屏幕汇总表的备注
+                var noteTd = document.getElementById('summaryNote_' + detailType);
+                if (noteTd) {
+                    var targetItem = null;
+                    for (var k = 0; k < serviceTypes.length; k++) {
+                        if (serviceTypes[k].detailType === detailType) {
+                            targetItem = serviceTypes[k];
+                            break;
+                        }
+                    }
+                    if (targetItem) {
+                        noteTd.textContent = getItemNote(targetItem);
+                    }
+                }
+                updateTotalRow();
+            }
+
+            var currentSubIndex = -1;
+
+            function openSubPanel(index) {
+                if (index < 0 || index >= serviceTypes.length) return;
+                currentSubIndex = index;
+                var item = serviceTypes[index];
+                document.getElementById('subPanelTitle').textContent = item.name;
+                var content = document.getElementById('subPanelContent');
+                var navContainer = document.getElementById('subNavContainer');
+                navContainer.innerHTML = renderSubNav(index);
+                if (item.hasDetail) {
+                    var dt = item.detailType;
+                    if (dt === 'settlementAudit') {
+                        content.innerHTML = renderSettlementAuditSheet(getDetailData('settlementAudit'));
+                    } else if (dt === 'rebarCalculation') {
+                        content.innerHTML = renderRebarSheet(getDetailData('rebarCalculation'));
+                    } else if (dt === 'dailyService') {
+                        content.innerHTML = renderDailyServiceSheet(getDetailData('dailyService'));
+                    } else {
+                        content.innerHTML = renderDetailSheet(dt, ratesMap[dt], getDetailData(dt));
+                    }
+                } else {
+                    content.innerHTML =
+                        '<div class="sub-placeholder"><p>此分表用于<strong>' + item.name +
+                        '</strong>的详细计算。</p><p style="color:var(--text-muted);">具体计算逻辑将在后续阶段补充。</p></div>';
+                }
+                document.getElementById('subPanel').classList.add('active');
+                document.getElementById('panelSummary').style.display = 'none';
+                document.getElementById('breadcrumbCurrent').textContent = ' ▸ ' + item.name;
+                document.getElementById('breadcrumbCurrent').style.display = 'inline';
+                document.getElementById('subPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                bindSubNav();
+                if (item.hasDetail) {
+                    var dt2 = item.detailType;
+                    if (dt2 === 'settlementAudit') bindSettlementAuditEvents();
+                    else if (dt2 === 'rebarCalculation') bindRebarEvents();
+                    else if (dt2 === 'dailyService') bindDailyServiceEvents();
+                    else bindDetailEvents(dt2);
+                }
+                applyAutoSizes();
+            }
+
+            function closeSubPanel() {
+                currentSubIndex = -1;
+                document.getElementById('subPanel').classList.remove('active');
+                document.getElementById('panelSummary').style.display = 'block';
+                document.getElementById('breadcrumbCurrent').style.display = 'none';
+                document.getElementById('subNavContainer').innerHTML = '';
+                document.getElementById('panelSummary').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+            document.getElementById('btnBackToSummary').addEventListener('click', closeSubPanel);
+            document.getElementById('breadcrumbSummary').addEventListener('click', closeSubPanel);
+
+            function renderDetailSheet(detailType, rates, dataObj) {
+                var baseLabel = baseLabels[detailType] || '收费基数';
+                var coeffOpts = '';
+                for (var i = 0; i < adjustCoeffOptions.length; i++) {
+                    var o = adjustCoeffOptions[i];
+                    var sel = Math.abs(o.value - dataObj.adjustCoeff) < 0.001 ? ' selected' : '';
+                    coeffOpts += '<option value="' + o.value + '"' + sel + '>' + o.name + '（' + o.value.toFixed(2) +
+                        '）</option>';
+                }
+                var rateRows = '';
+                for (var j = 0; j < brackets.length; j++) {
+                    rateRows += '<tr><td>' + baseLabel + '</td><td>' + getBracketLabel(j) + '</td><td>' + rates[j].toFixed(
+                        2) + ' ‰</td></tr>';
+                }
+                return '<div class="sub-input-section">' +
+                    '<div class="sub-input-row"><label>收费基数</label><input type="text" id="detailBaseAmount" placeholder="' +
+                    baseLabel + '" value="' + escapeHtml(dataObj.baseAmount) + '" autocomplete="off"><span class="unit">万元</span></div>' +
+                    '<div class="sub-input-row"><label>专业调整系数</label><select id="detailAdjustCoeff">' + coeffOpts +
+                    '</select></div>' +
+                    '<div class="sub-input-row"><label>下浮比例</label><input type="text" id="detailDiscountRate" placeholder="例：10 表示下浮10%" value="' +
+                    escapeHtml(dataObj.discountRate) + '" autocomplete="off"><span class="unit">%</span></div>' +
+                    '</div>' +
+                    '<table class="table-three-line" style="margin-bottom:10px;"><thead><tr><th>收费基数（X）</th><th>分档标准（万元）</th><th>费率（‰）</th></tr></thead><tbody>' +
+                    rateRows + '</tbody></table>' +
+                    '<div class="calc-detail" id="detailCalcDetail">' + (dataObj.fee !== null ? buildCalcDetail(dataObj,
+                        rates) :
+                        '<span style="color:var(--text-muted);">输入收费基数后自动计算</span>') + '</div>';
+            }
+
+            function buildCalcDetail(dataObj, rates) {
+                var X = parseFloat(dataObj.baseAmount);
+                if (isNaN(X) || X <= 0) return '<span style="color:var(--text-muted);">请输入有效收费基数</span>';
+                var rawFee = calcProgressiveFee(X, rates);
+                var adj = dataObj.adjustCoeff;
+                var disc = parseFloat(dataObj.discountRate) || 0;
+                var discFactor = 1 - disc / 100;
+                var finalFee = rawFee * adj * discFactor;
+                if (finalFee < 0.2) finalFee = 0.2;
+                var detail = '';
+                var prevB = 0;
+                for (var i = 0; i < brackets.length; i++) {
+                    var upper = Math.min(X, brackets[i]);
+                    if (upper > prevB) {
+                        var segVal = upper - prevB;
+                        detail += '<span>第' + (i + 1) + '档（' + getBracketLabel(i) + '）：' + segVal.toFixed(2) + ' × ' +
+                            rates[i].toFixed(2) + '‰ = ' + (segVal * rates[i] / 1000).toFixed(4) + ' 万元</span><br>';
+                    }
+                    prevB = brackets[i];
+                    if (X <= brackets[i]) break;
+                }
+                detail += '<span>分档累进合计：<strong>' + rawFee.toFixed(4) + ' 万元</strong></span><br>';
+                detail += '<span>专业调整系数：<strong>' + adj.toFixed(2) + '</strong></span><br>';
+                if (disc > 0) detail += '<span>下浮比例：<strong>' + disc.toFixed(0) + '%</strong> → 系数 ' + discFactor.toFixed(
+                    4) + '</span><br>';
+                detail += '<div class="final-result">收费金额 = 分档累进合计 × 专业调整系数 × (1 - 下浮比例) = ' +
+                    rawFee.toFixed(4) + ' × ' + adj.toFixed(2) + ' × ' + discFactor.toFixed(4) + ' = <strong>' + finalFee.toFixed(4) + ' 万元</strong>';
+                if (finalFee === 0.2 && rawFee * adj * discFactor < 0.2)
+                    detail += ' <span style="font-size:0.7rem;">（不足2000元，按2000元计）</span>';
+                detail += '</div>';
+                return detail;
+            }
+
+            function bindDetailEvents(detailType) {
+                var dataObj = getDetailData(detailType);
+                var rates = ratesMap[detailType];
+                var baseInp = document.getElementById('detailBaseAmount');
+                var coeffSel = document.getElementById('detailAdjustCoeff');
+                var discInp = document.getElementById('detailDiscountRate');
+                var detailDiv = document.getElementById('detailCalcDetail');
+
+                function recalc() {
+                    var X = parseFloat(baseInp.value.trim());
+                    dataObj.baseAmount = baseInp.value.trim();
+                    dataObj.adjustCoeff = parseFloat(coeffSel.value) || 1.00;
+                    dataObj.discountRate = discInp.value.trim();
+                    if (isNaN(X) || X <= 0) { dataObj.fee = null;
+                        detailDiv.innerHTML = '<span style="color:var(--text-muted);">请输入有效收费基数</span>'; } else {
+                        var rawFee = calcProgressiveFee(X, rates);
+                        var adj = dataObj.adjustCoeff;
+                        var disc = parseFloat(dataObj.discountRate) || 0;
+                        var finalFee = rawFee * adj * (1 - disc / 100);
+                        if (finalFee < 0.2) finalFee = 0.2;
+                        dataObj.fee = finalFee;
+                        detailDiv.innerHTML = buildCalcDetail(dataObj, rates);
+                    }
+                    updateSummaryFee(detailType);
+                }
+                var debouncedRecalc = debounce(recalc, 150);
+                baseInp.addEventListener('input', debouncedRecalc);
+                coeffSel.addEventListener('change', recalc);
+                discInp.addEventListener('input', debouncedRecalc);
+            }
+
+            function renderSettlementAuditSheet(dataObj) {
+                var coeffOpts = '';
+                for (var i = 0; i < adjustCoeffOptions.length; i++) {
+                    var o = adjustCoeffOptions[i];
+                    var sel = Math.abs(o.value - dataObj.adjustCoeff) < 0.001 ? ' selected' : '';
+                    coeffOpts += '<option value="' + o.value + '"' + sel + '>' + o.name + '（' + o.value.toFixed(2) +
+                        '）</option>';
+                }
+                var effectDiscountYes = dataObj.effectDiscount === 'yes' ? ' selected' : '';
+                var effectDiscountNo = dataObj.effectDiscount === 'no' ? ' selected' : '';
+                var calcEffectFeeYes = (dataObj.calcEffectFee || 'yes') === 'yes' ? ' selected' : '';
+                var calcEffectFeeNo = (dataObj.calcEffectFee || 'yes') === 'no' ? ' selected' : '';
+                var baseLabel = baseLabels['settlementAudit'] || '委托审核的造价金额';
+                var rates = ratesMap['settlementAudit'];
+                var rateRows = '';
+                for (var j = 0; j < brackets.length; j++) {
+                    rateRows += '<tr><td>' + baseLabel + '</td><td>' + getBracketLabel(j) + '</td><td>' + rates[j].toFixed(
+                        2) + ' ‰</td></tr>';
+                }
+                /* 修复：渲染时即根据已有数据计算审增（减）金额。
+                   原先硬编码为 "—"、仅在输入事件中更新，导致打印副本（重新渲染生成）永远显示 "—" */
+                var diffText = calcAuditDiffText(dataObj);
+                return '<div class="sub-input-section">' +
+                    '<div class="sub-input-row"><label>送审金额</label><input type="text" id="auditSubmitAmount" placeholder="委托审核的造价金额" value="' +
+                    escapeHtml(dataObj.baseAmount) + '" autocomplete="off"><span class="unit">万元</span></div>' +
+                    '<div class="sub-input-row"><label>审定金额</label><input type="text" id="auditApprovedAmount" placeholder="审定造价金额" value="' +
+                    escapeHtml(dataObj.approvedAmount) + '" autocomplete="off"><span class="unit">万元</span></div>' +
+                    '<div class="sub-input-row"><label>审增（减）金额</label><span id="auditDiffAmount" style="font-weight:700;min-width:120px;">' +
+                    diffText + '</span><span class="unit">万元</span></div>' +
+                    '<div class="sub-input-row"><label>专业调整系数</label><select id="auditAdjustCoeff">' + coeffOpts +
+                    '</select></div>' +
+                    '<div class="sub-input-row"><label>下浮比例</label><input type="text" id="auditDiscountRate" placeholder="例：10 表示下浮10%" value="' +
+                    escapeHtml(dataObj.discountRate) + '" autocomplete="off"><span class="unit">%</span></div>' +
+                    '</div>' +
+                    '<div class="sub-input-section">' +
+                    '<div style="font-weight:700;margin-bottom:10px;">成效附加费设置</div>' +
+                    '<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px;">' +
+                    '<div>' +
+                    '<div class="sub-input-row"><label>是否计算成效附加费</label><select id="auditCalcEffectFee"><option value="yes"' + calcEffectFeeYes + '>是</option><option value="no"' + calcEffectFeeNo + '>否</option></select></div>' +
+                    '<div class="sub-input-row"><label>是否参与下浮</label><select id="auditEffectDiscount"><option value="no"' + effectDiscountNo + '>否</option><option value="yes"' + effectDiscountYes + '>是</option></select></div>' +
+                    '</div>' +
+                    '<div>' +
+                    '<div class="sub-input-row"><span class="inline-input-text">审减比例＞ <input type="text" id="auditEffectThreshold" value="' + escapeHtml(dataObj.effectThreshold) + '" autocomplete="off"> % 时计算成效附加费</span></div>' +
+                    '<div class="sub-input-row"><label>成效附加费费率</label><input type="text" id="auditEffectRate" value="' + escapeHtml(dataObj.effectRate) + '" autocomplete="off"><span class="unit">%</span></div>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>' +
+                    '<table class="table-three-line" style="margin-bottom:10px;"><thead><tr><th>收费基数（X）</th><th>分档标准（万元）</th><th>费率（‰）</th></tr></thead><tbody>' +
+                    rateRows + '</tbody></table>' +
+                    '<div class="calc-detail" id="auditCalcDetail">' + buildSettlementAuditDetail(dataObj) + '</div>';
+            }
+
+            function buildSettlementAuditDetail(dataObj) {
+                var submit = parseFloat(dataObj.baseAmount);
+                var approved = parseFloat(dataObj.approvedAmount);
+                if (isNaN(submit) || submit <= 0 || isNaN(approved) || approved <= 0) {
+                    return '<span style="color:var(--text-muted);">请输入有效的送审金额和审定金额</span>';
+                }
+                var diff = approved - submit;
+                var diffSign = diff >= 0 ? '+' : '';
+                var diffDisplay = diffSign + diff.toFixed(4);
+                var rates = ratesMap['settlementAudit'];
+                var rawBaseFee = calcProgressiveFee(submit, rates);
+                var adj = dataObj.adjustCoeff;
+                var disc = parseFloat(dataObj.discountRate) || 0;
+                var discFactor = 1 - disc / 100;
+                var baseFee = rawBaseFee * adj * discFactor;
+                var baseFeeFinal = baseFee < 0.2 ? 0.2 : baseFee;
+                var effectFee = 0;
+                var effectLabel = '';
+                var effectDetail = '';
+                var deduction = submit - approved;
+                var threshold = parseFloat(dataObj.effectThreshold);
+                var effectRateVal = parseFloat(dataObj.effectRate);
+
+                if (dataObj.calcEffectFee === 'no') {
+                    effectLabel = '成效附加费（设置为不计算成效附加费）';
+                    effectDetail = '根据设置，不计算成效附加费。';
+                } else if (deduction > 0 && approved > 0 && !isNaN(threshold) && !isNaN(effectRateVal) && threshold >= 0 && effectRateVal >= 0) {
+                    var reductionRatio = (deduction / approved) * 100;
+                    if (reductionRatio > threshold) {
+                        effectLabel = '成效附加费（审减比例＞ ' + threshold + '% 时，按超出 ' + threshold + '% 部分造价金额的 ' + effectRateVal + '% 计算成效附加费。）';
+                        var excessAmount = deduction - approved * (threshold / 100);
+                        if (excessAmount > 0) {
+                            var rawEffect = excessAmount * (effectRateVal / 100) * adj;
+                            effectFee = rawEffect;
+                            effectDetail = '审减比例 = 审减金额 ÷ 审定金额 × 100% = ' + deduction.toFixed(4) + ' ÷ ' + approved.toFixed(4) + ' × 100% = ' + reductionRatio.toFixed(2) + '% > ' + threshold + '% ，满足条件。<br>';
+                            effectDetail += '超出部分 = 审减金额 ' + deduction.toFixed(4) + ' - 审定金额×' + threshold + '% = ' + excessAmount.toFixed(4) + ' 万元<br>';
+                            if (dataObj.effectDiscount === 'yes') {
+                                effectFee = rawEffect * discFactor;
+                                effectDetail += '成效附加费参与下浮：' + excessAmount.toFixed(4) + '万元×' + effectRateVal + '%×专业调整系数' + adj.toFixed(2) + ' = ' + rawEffect.toFixed(4) + ' × (1 - ' + disc + '%) = ' + effectFee.toFixed(4) + ' 万元';
+                            } else {
+                                effectDetail += '成效附加费不参与下浮：' + excessAmount.toFixed(4) + '万元×' + effectRateVal + '%×专业调整系数' + adj.toFixed(2) + ' = ' + effectFee.toFixed(4) + ' 万元';
+                            }
+                        } else {
+                            effectDetail = '审减比例 = 审减金额 ÷ 审定金额 × 100% = ' + deduction.toFixed(4) + ' ÷ ' + approved.toFixed(4) + ' × 100% = ' + reductionRatio.toFixed(2) + '% > ' + threshold + '%，但超出部分为0，不计算成效附加费。';
+                        }
+                    } else {
+                        effectLabel = '成效附加费（审减比例≤ ' + threshold + '% ，不计算成效附加费。）';
+                        effectDetail = '审减比例 = 审减金额 ÷ 审定金额 × 100% = ' + deduction.toFixed(4) + ' ÷ ' + approved.toFixed(4) + ' × 100% = ' + reductionRatio.toFixed(2) + '% ≤ ' + threshold + '%，不满足条件，不计算成效附加费。';
+                    }
+                } else {
+                    if (deduction > 0 && approved > 0) {
+                        effectLabel = '成效附加费（参数不完整，无法计算。）';
+                        effectDetail = '成效附加费参数不完整，无法计算。';
+                    } else {
+                        effectLabel = '成效附加费（审减金额 ≤ 0，不计算成效附加费。）';
+                        effectDetail = '审减金额 ≤ 0，不计算成效附加费。';
+                    }
+                }
+
+                var totalFee = baseFeeFinal + effectFee;
+                var detail = '';
+                detail += '<div class="fee-item"><span class="fee-label"><strong>基本费 = 分档累进合计 × 专业调整系数 × (1 - 下浮比例)</strong></span><span class="fee-value">' + baseFeeFinal.toFixed(4) + ' 万元</span></div>';
+                if (baseFeeFinal === 0.2 && baseFee < 0.2)
+                    detail += '<span style="font-size:0.7rem;">（不足2000元，按2000元计）</span><br>';
+                var prevB = 0;
+                for (var i = 0; i < brackets.length; i++) {
+                    var upper = Math.min(submit, brackets[i]);
+                    if (upper > prevB) {
+                        var segVal = upper - prevB;
+                        detail += '<span>第' + (i + 1) + '档（' + getBracketLabel(i) + '）：' + segVal.toFixed(2) + ' × ' +
+                            rates[i].toFixed(2) + '‰ = ' + (segVal * rates[i] / 1000).toFixed(4) + ' 万元</span><br>';
+                    }
+                    prevB = brackets[i];
+                    if (submit <= brackets[i]) break;
+                }
+                detail += '<span>分档累进合计：<strong>' + rawBaseFee.toFixed(4) + ' 万元</strong></span><br>';
+                detail += '<span>专业调整系数：<strong>' + adj.toFixed(2) + '</strong></span><br>';
+                if (disc > 0) detail += '<span>下浮比例：<strong>' + disc.toFixed(0) + '%</strong> → 系数 ' + discFactor.toFixed(4) + '</span><br>';
+                detail += '<div class="fee-item"><span class="fee-label"><strong>' + effectLabel + '</strong></span><span class="fee-value">' + effectFee.toFixed(4) + ' 万元</span></div>';
+                if (effectDetail) {
+                    detail += '<div style="font-size:0.72rem; margin-top:4px;">' + effectDetail + '</div>';
+                }
+                detail += '<div class="final-result">收费金额（基本费+成效附加费）：<strong>' + totalFee.toFixed(4) + ' 万元</strong></div>';
+                return detail;
+            }
+
+            function bindSettlementAuditEvents() {
+                var dataObj = getDetailData('settlementAudit');
+                var submitInp = document.getElementById('auditSubmitAmount');
+                var approvedInp = document.getElementById('auditApprovedAmount');
+                var coeffSel = document.getElementById('auditAdjustCoeff');
+                var discInp = document.getElementById('auditDiscountRate');
+                var thresholdInp = document.getElementById('auditEffectThreshold');
+                var rateInp = document.getElementById('auditEffectRate');
+                var effectDiscSel = document.getElementById('auditEffectDiscount');
+                var calcEffectFeeSel = document.getElementById('auditCalcEffectFee');
+                var diffSpan = document.getElementById('auditDiffAmount');
+                var detailDiv = document.getElementById('auditCalcDetail');
+
+                function recalc() {
+                    var submit = parseFloat(submitInp.value.trim());
+                    var approved = parseFloat(approvedInp.value.trim());
+                    dataObj.baseAmount = submitInp.value.trim();
+                    dataObj.approvedAmount = approvedInp.value.trim();
+                    dataObj.adjustCoeff = parseFloat(coeffSel.value) || 1.00;
+                    dataObj.discountRate = discInp.value.trim();
+                    dataObj.effectThreshold = thresholdInp.value.trim();
+                    dataObj.effectRate = rateInp.value.trim();
+                    dataObj.effectDiscount = effectDiscSel.value;
+                    dataObj.calcEffectFee = calcEffectFeeSel.value;
+                    diffSpan.textContent = calcAuditDiffText(dataObj);
+                    if (isNaN(submit) || submit <= 0 || isNaN(approved) || approved <= 0) {
+                        dataObj.fee = null;
+                        detailDiv.innerHTML =
+                            '<span style="color:var(--text-muted);">请输入有效的送审金额和审定金额</span>';
+                    } else {
+                        var rates = ratesMap['settlementAudit'];
+                        var rawBaseFee = calcProgressiveFee(submit, rates);
+                        var adj = dataObj.adjustCoeff;
+                        var disc = parseFloat(dataObj.discountRate) || 0;
+                        var discFactor = 1 - disc / 100;
+                        var baseFee = rawBaseFee * adj * discFactor;
+                        var baseFeeFinal = baseFee < 0.2 ? 0.2 : baseFee;
+                        var deduction = submit - approved;
+                        var effectFee = 0;
+                        if (dataObj.calcEffectFee !== 'no' && deduction > 0 && approved > 0) {
+                            var reductionRatio = (deduction / approved) * 100;
+                            var threshold = parseFloat(dataObj.effectThreshold);
+                            var effectRateVal = parseFloat(dataObj.effectRate);
+                            if (!isNaN(threshold) && !isNaN(effectRateVal) && threshold >= 0 && effectRateVal >= 0) {
+                                if (reductionRatio > threshold) {
+                                    var excessAmount = deduction - approved * (threshold / 100);
+                                    if (excessAmount > 0) {
+                                        var rawEffect = excessAmount * (effectRateVal / 100) * adj;
+                                        effectFee = rawEffect;
+                                        if (dataObj.effectDiscount === 'yes') {
+                                            effectFee = rawEffect * discFactor;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        dataObj.fee = baseFeeFinal + effectFee;
+                        detailDiv.innerHTML = buildSettlementAuditDetail(dataObj);
+                    }
+                    updateSummaryFee('settlementAudit');
+                }
+                var debouncedRecalc = debounce(recalc, 150);
+                submitInp.addEventListener('input', debouncedRecalc);
+                approvedInp.addEventListener('input', debouncedRecalc);
+                coeffSel.addEventListener('change', recalc);
+                discInp.addEventListener('input', debouncedRecalc);
+                thresholdInp.addEventListener('input', debouncedRecalc);
+                rateInp.addEventListener('input', debouncedRecalc);
+                effectDiscSel.addEventListener('change', recalc);
+                calcEffectFeeSel.addEventListener('change', recalc);
+            }
+
+            function renderRebarSheet(dataObj) {
+                var coeffOpts = '';
+                for (var i = 0; i < adjustCoeffOptions.length; i++) {
+                    var o = adjustCoeffOptions[i];
+                    var sel = Math.abs(o.value - dataObj.adjustCoeff) < 0.001 ? ' selected' : '';
+                    coeffOpts += '<option value="' + o.value + '"' + sel + '>' + o.name + '（' + o.value.toFixed(2) +
+                        '）</option>';
+                }
+                return '<div class="sub-input-section">' +
+                    '<div class="sub-input-row"><label>计算对象合计重量</label><input type="text" id="rebarWeight" placeholder="吨" value="' +
+                    escapeHtml(dataObj.weight) + '" autocomplete="off"><span class="unit">吨</span></div>' +
+                    '<div class="sub-input-row"><label>专业调整系数</label><select id="rebarAdjustCoeff">' + coeffOpts +
+                    '</select></div>' +
+                    '<div class="sub-input-row"><label>下浮比例</label><input type="text" id="rebarDiscountRate" placeholder="例：10" value="' +
+                    escapeHtml(dataObj.discountRate) + '" autocomplete="off"><span class="unit">%</span></div>' +
+                    '<div class="sub-input-row"><label>单价标准</label><span style="font-weight:600;">12.00 元/吨</span></div>' +
+                    '</div>' +
+                    '<div class="calc-detail" id="rebarCalcDetail">' + buildRebarDetail(dataObj) + '</div>';
+            }
+
+            function buildRebarDetail(dataObj) {
+                var weight = parseFloat(dataObj.weight);
+                if (isNaN(weight) || weight <= 0) return '<span style="color:var(--text-muted);">请输入有效的重量</span>';
+                var yuan = weight * 12;
+                var adj = dataObj.adjustCoeff;
+                var disc = parseFloat(dataObj.discountRate) || 0;
+                var discFactor = 1 - disc / 100;
+                var wan = yuan / 10000 * adj * discFactor;
+                var finalWan = wan < 0.2 ? 0.2 : wan;
+                var detail = '<span>重量：<strong>' + weight.toFixed(4) + ' 吨</strong> × 12 元/吨 = ' + yuan.toFixed(2) +
+                    ' 元</span><br>';
+                detail += '<span>专业调整系数：<strong>' + adj.toFixed(2) + '</strong></span><br>';
+                if (disc > 0) detail += '<span>下浮比例：<strong>' + disc.toFixed(0) + '%</strong> → 系数 ' + discFactor.toFixed(
+                    4) + '</span><br>';
+                if (wan < 0.2) detail += '<span>计算结果不足2000元，按2000元计</span><br>';
+                detail += '<div class="final-result">收费金额 = 计算对象合计重量 × 12元/吨 × 专业调整系数 × (1 - 下浮比例) = <strong>' + finalWan.toFixed(4) + ' 万元</strong></div>';
+                return detail;
+            }
+
+            function bindRebarEvents() {
+                var dataObj = getDetailData('rebarCalculation');
+                var weightInp = document.getElementById('rebarWeight');
+                var coeffSel = document.getElementById('rebarAdjustCoeff');
+                var discInp = document.getElementById('rebarDiscountRate');
+                var detailDiv = document.getElementById('rebarCalcDetail');
+
+                function recalc() {
+                    dataObj.weight = weightInp.value.trim();
+                    dataObj.adjustCoeff = parseFloat(coeffSel.value) || 1.00;
+                    dataObj.discountRate = discInp.value.trim();
+                    var w = parseFloat(dataObj.weight);
+                    if (isNaN(w) || w <= 0) { dataObj.fee = null;
+                        detailDiv.innerHTML = '<span style="color:var(--text-muted);">请输入有效的重量</span>'; } else {
+                        var adj = dataObj.adjustCoeff;
+                        var disc = parseFloat(dataObj.discountRate) || 0;
+                        var wan = (w * 12) / 10000 * adj * (1 - disc / 100);
+                        dataObj.fee = wan < 0.2 ? 0.2 : wan;
+                        detailDiv.innerHTML = buildRebarDetail(dataObj);
+                    }
+                    updateSummaryFee('rebarCalculation');
+                }
+                var debouncedRecalc = debounce(recalc, 150);
+                weightInp.addEventListener('input', debouncedRecalc);
+                coeffSel.addEventListener('change', recalc);
+                discInp.addEventListener('input', debouncedRecalc);
+            }
+
+            function renderDailyServiceSheet(dataObj) {
+                var coeffOpts = '';
+                for (var i = 0; i < adjustCoeffOptions.length; i++) {
+                    var o = adjustCoeffOptions[i];
+                    var sel = Math.abs(o.value - dataObj.adjustCoeff) < 0.001 ? ' selected' : '';
+                    coeffOpts += '<option value="' + o.value + '"' + sel + '>' + o.name + '（' + o.value.toFixed(2) +
+                        '）</option>';
+                }
+                return '<div class="sub-input-section">' +
+                    '<div style="font-weight:700;margin-bottom:4px;">一级造价工程师</div>' +
+                    '<div class="sub-input-row"><input type="text" id="dailyDays1" value="' + escapeHtml(dataObj.days1) +
+                    '" autocomplete="off"><span class="unit">实际工作日</span></div>' +
+                    '<div class="sub-input-row"><input type="text" id="dailyRate1" placeholder="1000～1600元/日内议定" value="' +
+                    escapeHtml(dataObj.rate1) + '" autocomplete="off"><span class="unit">元/工作日</span></div>' +
+                    '<div style="font-weight:700;margin-top:14px;margin-bottom:4px;">二级造价工程师</div>' +
+                    '<div class="sub-input-row"><input type="text" id="dailyDays2" value="' + escapeHtml(dataObj.days2) +
+                    '" autocomplete="off"><span class="unit">实际工作日</span></div>' +
+                    '<div class="sub-input-row"><input type="text" id="dailyRate2" placeholder="500～1000元/日内议定" value="' +
+                    escapeHtml(dataObj.rate2) + '" autocomplete="off"><span class="unit">元/工作日</span></div>' +
+                    '<div class="sub-input-row"><label>专业调整系数</label><select id="dailyAdjustCoeff">' + coeffOpts +
+                    '</select></div>' +
+                    '<div class="sub-input-row" style="margin-top:12px;"><label style="font-weight:700;">下浮比例</label><input type="text" id="dailyDiscountRate" placeholder="例：10" value="' +
+                    escapeHtml(dataObj.discountRate) + '" autocomplete="off"><span class="unit">%</span></div>' +
+                    '</div>' +
+                    '<div class="calc-detail" id="dailyCalcDetail">' + buildDailyDetail(dataObj) + '</div>';
+            }
+
+            function buildDailyDetail(dataObj) {
+                var d1 = parseFloat(dataObj.days1),
+                    r1 = parseFloat(dataObj.rate1);
+                var d2 = parseFloat(dataObj.days2),
+                    r2 = parseFloat(dataObj.rate2);
+                if (isNaN(d1) || d1 < 0) d1 = 0;
+                if (isNaN(r1) || r1 < 0) r1 = 0;
+                if (isNaN(d2) || d2 < 0) d2 = 0;
+                if (isNaN(r2) || r2 < 0) r2 = 0;
+                var sum1 = d1 * r1,
+                    sum2 = d2 * r2;
+                var totalYuan = sum1 + sum2;
+                var adj = dataObj.adjustCoeff;
+                var disc = parseFloat(dataObj.discountRate) || 0;
+                var discFactor = 1 - disc / 100;
+                var wan = totalYuan / 10000 * adj * discFactor;
+                var finalWan = wan < 0.2 ? 0.2 : wan;
+                var detail = '';
+                if (d1 > 0 && r1 > 0) detail += '<span>一级造价工程师：' + d1 + ' 实际工作日 × ' + r1.toFixed(2) +
+                    ' 元/工作日 = ' + sum1.toFixed(2) + ' 元</span><br>';
+                else detail += '<span>一级造价工程师：未计费</span><br>';
+                if (d2 > 0 && r2 > 0) detail += '<span>二级造价工程师：' + d2 + ' 实际工作日 × ' + r2.toFixed(2) +
+                    ' 元/工作日 = ' + sum2.toFixed(2) + ' 元</span><br>';
+                else detail += '<span>二级造价工程师：未计费</span><br>';
+                detail += '<span>合计：<strong>' + totalYuan.toFixed(2) + ' 元</strong></span><br>';
+                detail += '<span>专业调整系数：<strong>' + adj.toFixed(2) + '</strong></span><br>';
+                if (disc > 0) detail += '<span>下浮比例：<strong>' + disc.toFixed(0) + '%</strong> → 系数 ' + discFactor.toFixed(
+                    4) + '</span><br>';
+                if (wan < 0.2) detail += '<span>计算结果不足2000元，按2000元计</span><br>';
+                detail += '<div class="final-result">收费金额 = 造价工程师费用合计 × 专业调整系数 × (1 - 下浮比例) = <strong>' + finalWan.toFixed(4) + ' 万元</strong></div>';
+                return detail;
+            }
+
+            function bindDailyServiceEvents() {
+                var dataObj = getDetailData('dailyService');
+                var days1 = document.getElementById('dailyDays1'),
+                    rate1 = document.getElementById('dailyRate1');
+                var days2 = document.getElementById('dailyDays2'),
+                    rate2 = document.getElementById('dailyRate2');
+                var coeffSel = document.getElementById('dailyAdjustCoeff');
+                var discInp = document.getElementById('dailyDiscountRate');
+                var detailDiv = document.getElementById('dailyCalcDetail');
+
+                function recalc() {
+                    dataObj.days1 = days1.value.trim();
+                    dataObj.rate1 = rate1.value.trim();
+                    dataObj.days2 = days2.value.trim();
+                    dataObj.rate2 = rate2.value.trim();
+                    dataObj.adjustCoeff = parseFloat(coeffSel.value) || 1.00;
+                    dataObj.discountRate = discInp.value.trim();
+                    var d1 = parseFloat(dataObj.days1),
+                        r1 = parseFloat(dataObj.rate1);
+                    var d2 = parseFloat(dataObj.days2),
+                        r2 = parseFloat(dataObj.rate2);
+                    if (isNaN(d1) || d1 < 0) d1 = 0;
+                    if (isNaN(r1) || r1 < 0) r1 = 0;
+                    if (isNaN(d2) || d2 < 0) d2 = 0;
+                    if (isNaN(r2) || r2 < 0) r2 = 0;
+                    var totalYuan = d1 * r1 + d2 * r2;
+                    var adj = dataObj.adjustCoeff;
+                    var disc = parseFloat(dataObj.discountRate) || 0;
+                    var wan = totalYuan / 10000 * adj * (1 - disc / 100);
+                    dataObj.fee = wan < 0.2 ? 0.2 : wan;
+                    detailDiv.innerHTML = buildDailyDetail(dataObj);
+                    updateSummaryFee('dailyService');
+                }
+                var debouncedRecalc = debounce(recalc, 150);
+                days1.addEventListener('input', debouncedRecalc);
+                rate1.addEventListener('input', debouncedRecalc);
+                days2.addEventListener('input', debouncedRecalc);
+                rate2.addEventListener('input', debouncedRecalc);
+                coeffSel.addEventListener('change', recalc);
+                discInp.addEventListener('input', debouncedRecalc);
+            }
+
+            function escapeHtml(s) { if (!s) return ''; return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g,
+                    '&gt;').replace(/"/g, '&quot;'); }
+
+            document.getElementById('btnPrint').addEventListener('click', function() { buildPrintArea(); window.print(); });
+            document.getElementById('btnExportCSV').addEventListener('click', function() {
+                var csv = '\uFEFF序号,服务类型,收费金额（万元）,备注\n';
+                var total = 0;
+                for (var i = 0; i < serviceTypes.length; i++) {
+                    var item = serviceTypes[i];
+                    var note = item.rowspanMerge ? '' : (getItemNote(item) || '');
+                    var amt = '0.0000';
+                    if (item.hasDetail) { var d = getDetailData(item.detailType);
+                        amt = d && d.fee !== null ? d.fee.toFixed(4) : '0.0000'; } else { amt = manualAmounts[i] ||
+                            '0.0000'; }
+                    csv += (i + 1) + ',"' + item.name + '",' + amt + ',"' + note + '"\n';
+                    var v = parseFloat(amt);
+                    if (!isNaN(v)) total += v;
+                }
+                csv += '合计,,' + total.toFixed(4) + ',\n';
+                csv +=
+                '\n注：依据《云南省物价局关于调整建设工程造价咨询服务收费标准的通知》(云价综合〔2012〕66号)计算';
+                var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                var url = URL.createObjectURL(blob);
+                var a = document.createElement('a');
+                a.href = url;
+                a.download = '造价咨询服务费汇总表.csv';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && currentSubIndex >= 0) { e.preventDefault();
+                    closeSubPanel(); }
+            });
+            renderSummaryTable();
+        })();
+    </script>
+</body>
+</html>
